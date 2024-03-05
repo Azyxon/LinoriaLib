@@ -2916,7 +2916,7 @@ function Library:Notify(Text, Time, Warn)
     });
 
     Library:AddToRegistry(LeftColor, {
-        BackgroundColor3 = 'AccentColor';
+        BackgroundColor3 = Warn and Color3.fromRGB(235, 233, 63) or 'AccentColor';
     }, true);
 
     pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
