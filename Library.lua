@@ -1479,7 +1479,6 @@ do
         end
 
         function Button:SetText(Text)
-            Label.Text = Text
             Button.Text = Text
 
             Groupbox:Resize();
