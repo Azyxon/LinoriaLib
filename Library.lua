@@ -1478,12 +1478,6 @@ do
             return Outer, Inner, Label
         end
 
-        function Button:SetText(Text)
-            Button.Text = Text
-
-            Groupbox:Resize();
-        end
-
         local function InitEvents(Button)
             local function WaitForEvent(event, timeout, validator)
                 local bindable = Instance.new('BindableEvent')
@@ -1550,6 +1544,12 @@ do
         Button.Outer.Parent = Container
 
         InitEvents(Button)
+
+        function Button:SetText(Text)
+            Button.Label.Text = Text
+
+            Groupbox:Resize();
+        end
 
         function Button:AddTooltip(tooltip)
             if type(tooltip) == 'string' then
