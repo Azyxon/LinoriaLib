@@ -1478,6 +1478,13 @@ do
             return Outer, Inner, Label
         end
 
+        function Button:SetText(Text)
+            Label.Text = Text
+            Button.Text = Text
+
+            Groupbox:Resize();
+        end
+
         local function InitEvents(Button)
             local function WaitForEvent(event, timeout, validator)
                 local bindable = Instance.new('BindableEvent')
