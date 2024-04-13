@@ -3645,7 +3645,9 @@ function Library:CreateWindow(...)
         task.wait(FadeTime);
 
         Outer.Visible = Toggled;
-        Editor.Frame.Visible = Toggled;
+        if Editor then
+            Editor.Frame.Visible = Toggled;
+        end
 
         Fading = false;
     end
