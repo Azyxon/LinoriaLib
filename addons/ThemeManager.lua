@@ -46,6 +46,11 @@ local ThemeManager = {} do
 
 		self.Library.AccentColorDark = self.Library:GetDarkerColor(self.Library.AccentColor);
 		self.Library:UpdateColorsUsingRegistry()
+
+		if Editor then
+			Editor.Frame.Frame.BorderColor3 = self.Library.AccentColor
+			Editor.Frame.Frame.Line.BorderColor3 = self.Library.AccentColor
+		end
 	end
 
 	function ThemeManager:LoadDefault()		
