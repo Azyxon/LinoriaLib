@@ -51,6 +51,9 @@ local ThemeManager = {} do
 			Editor.Frame.Frame.BorderColor3 = self.Library.AccentColor
 			Editor.Frame.Frame.Line.BorderColor3 = self.Library.AccentColor
 		end
+		if Topbar then
+			Topbar.TopBarFrame.BorderColor3 = self.Library.AccentColor
+		end		
 	end
 
 	function ThemeManager:LoadDefault()		
