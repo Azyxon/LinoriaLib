@@ -3642,7 +3642,7 @@ function Library:CreateWindow(...)
             end;
         end;
 
-        if Topbar then
+        if Topbar and Toggles["Topbar"].Value then
             for _, Desc in next, Topbar:GetDescendants() do
                 local Properties = {};
     
@@ -3682,7 +3682,7 @@ function Library:CreateWindow(...)
         if Editor then
             Editor.Frame.Visible = Toggled;
         end
-        if Topbar then
+        if Topbar and Toggles["Topbar"].Value then
             Topbar.TopBarFrame.Visible = Toggled;
         end
 
