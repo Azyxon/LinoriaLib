@@ -3603,7 +3603,7 @@ function Library:CreateWindow(...)
             end;
         end;
 
-        if Editor then
+        if Editor then -- Script Editor
             for _, Desc in next, Editor:GetDescendants() do
                 local Properties = {};
     
@@ -3611,6 +3611,9 @@ function Library:CreateWindow(...)
                     table.insert(Properties, 'ImageTransparency');
                     table.insert(Properties, 'BackgroundTransparency');
                 elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                    table.insert(Properties, 'TextTransparency');
+                elseif Desc:IsA('TextButton') then
+                    table.insert(Properties, 'BackgroundTransparency');
                     table.insert(Properties, 'TextTransparency');
                 elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
                     table.insert(Properties, 'BackgroundTransparency');
