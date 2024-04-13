@@ -3642,11 +3642,48 @@ function Library:CreateWindow(...)
             end;
         end;
 
+        if Topbar then
+            for _, Desc in next, Topbar:GetDescendants() do
+                local Properties = {};
+    
+                if Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                    table.insert(Properties, 'TextTransparency');
+                elseif Desc:IsA('TextButton') then
+                    table.insert(Properties, 'BackgroundTransparency');
+                    table.insert(Properties, 'TextTransparency');
+                elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
+                    table.insert(Properties, 'BackgroundTransparency');
+                end;
+    
+                local Cache = TransparencyCache[Desc];
+    
+                if (not Cache) then
+                    Cache = {};
+                    TransparencyCache[Desc] = Cache;
+                end;
+    
+                for _, Prop in next, Properties do
+                    if not Cache[Prop] then
+                        Cache[Prop] = Desc[Prop];
+                    end;
+    
+                    if Cache[Prop] == 1 then
+                        continue;
+                    end;
+    
+                    TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), { [Prop] = Toggled and Cache[Prop] or 1 }):Play();
+                end;
+            end;
+        end;
+
         task.wait(FadeTime);
 
         Outer.Visible = Toggled;
         if Editor then
             Editor.Frame.Visible = Toggled;
+        end
+        if Topbar then
+            Topbar.TopBarFrame.Visible = Toggled;
         end
 
         Fading = false;
