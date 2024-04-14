@@ -1508,18 +1508,16 @@ do
                 return true
             end
 
-            Button.Outer.InputBegan:Connect(function(Input)                
+            Button.Outer.InputBegan:Connect(function(Input)
                 if not ValidateClick(Input) then return end
                 if Button.Locked then return end
-
-                local ClickText = Button.ClickText or 'Are you sure?';
 
                 if Button.DoubleClick then
                     Library:RemoveFromRegistry(Button.Label)
                     Library:AddToRegistry(Button.Label, { TextColor3 = 'AccentColor' })
 
                     Button.Label.TextColor3 = Library.AccentColor
-                    Button.Label.Text = ClickText
+                    Button.Label.Text = 'Are you sure?'
                     Button.Locked = true
 
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
@@ -1544,12 +1542,6 @@ do
 
         Button.Outer, Button.Inner, Button.Label = CreateBaseButton(Button)
         Button.Outer.Parent = Container
-
-       if Button.Risky then
-            Library:RemoveFromRegistry(Button.Label)
-            Button.Label.TextColor3 = Library.RiskColor
-            Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
-        end
 
         InitEvents(Button)
 
