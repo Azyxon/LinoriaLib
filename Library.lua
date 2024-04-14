@@ -1831,11 +1831,19 @@ do
     function Funcs:AddToggle(Idx, Info)
         assert(Info.Text, 'AddInput: Missing `Text` string.')
 
+        function Call()
+            if Info.Risky then
+                Library:Notify("Enable Unsafe Features to use this feature.\n -> Settings -> Menu -> Unsafe Features", 5, true)
+                return
+            end
+            return Info.Callback or function(Value) end
+        end
+
         local Toggle = {
             Value = Info.Default or false;
             Type = 'Toggle';
 
-            Callback = Info.Callback or function(Value) end;
+            Callback = Call;
             Addons = {},
             Risky = Info.Risky,
         };
