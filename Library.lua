@@ -1508,29 +1508,26 @@ do
                 return true
             end
 
-            Button.Outer.InputBegan:Connect(function(Input)
+            Button.Outer.InputBegan:Connect(function(Input)                
                 if not ValidateClick(Input) then return end
                 if Button.Locked then return end
+
+                local ClickText = Button.ClickText or 'Are you sure?';
 
                 if Button.DoubleClick then
                     Library:RemoveFromRegistry(Button.Label)
                     Library:AddToRegistry(Button.Label, { TextColor3 = 'AccentColor' })
 
                     Button.Label.TextColor3 = Library.AccentColor
-                    Button.Label.Text = Button.ClickText or 'Are you sure?'  
-
+                    Button.Label.Text = ClickText
                     Button.Locked = true
 
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
 
                     Library:RemoveFromRegistry(Button.Label)
-                    if Button.Risky then
-                        Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
-                    else
-                        Library:AddToRegistry(Button.Label, { TextColor3 = 'FontColor' })
-                    end
+                    Library:AddToRegistry(Button.Label, { TextColor3 = 'FontColor' })
 
-                    Button.Label.TextColor3 = Button.Risky and Library.RiskColor or Library.FontColor
+                    Button.Label.TextColor3 = Library.FontColor
                     Button.Label.Text = Button.Text
                     task.defer(rawset, Button, 'Locked', false)
 
@@ -1547,6 +1544,12 @@ do
 
         Button.Outer, Button.Inner, Button.Label = CreateBaseButton(Button)
         Button.Outer.Parent = Container
+
+       if Button.Risky then
+            Library:RemoveFromRegistry(Button.Label)
+            Button.Label.TextColor3 = Library.RiskColor
+            Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
+        end
 
         InitEvents(Button)
 
