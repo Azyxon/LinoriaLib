@@ -1523,7 +1523,7 @@ do
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
 
                     Library:RemoveFromRegistry(Button.Label)
-                    Library:AddToRegistry(Button.Label, { TextColor3 = 'FontColor' })
+                    Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' }) --testing
 
                     Button.Label.TextColor3 = Library.FontColor
                     Button.Label.Text = Button.Text
@@ -1549,6 +1549,12 @@ do
             Button.Label.Text = Text
 
             Groupbox:Resize();
+        end
+
+        if Button.Risky then
+            Library:RemoveFromRegistry(Button.Label)
+            Button.Label.TextColor3 = Library.RiskColor
+            Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
         end
 
         function Button:AddTooltip(tooltip)
