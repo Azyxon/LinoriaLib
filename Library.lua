@@ -1524,7 +1524,11 @@ do
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
 
                     Library:RemoveFromRegistry(Button.Label)
-                    Library:AddToRegistry(Button.Label, { Button.Risky and TextColor3 = 'RiskColor' or TextColor3 = 'FontColor' })
+                    if Button.Risky then
+                        Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
+                    else
+                        Library:AddToRegistry(Button.Label, { TextColor3 = 'FontColor' })
+                    end
 
                     Button.Label.TextColor3 = Button.Risky and Library.RiskColor or Library.FontColor
                     Button.Label.Text = Button.Text
@@ -1535,12 +1539,6 @@ do
                     end
 
                     return
-                end
-
-                if Button.Risky then
-                    Library:RemoveFromRegistry(Button.Label)
-                    Button.Label.TextColor3 = Library.RiskColor
-                    Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
                 end
 
                 Library:SafeCallback(Button.Func);
