@@ -1511,6 +1511,7 @@ do
             Button.Outer.InputBegan:Connect(function(Input)
                 if not ValidateClick(Input) then return end
                 if Button.Locked then return end
+                local Color = Button.Risky and 'RiskColor' or 'FontColor'
 
                 if Button.DoubleClick then
                     Library:RemoveFromRegistry(Button.Label)
@@ -1523,9 +1524,9 @@ do
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
 
                     Library:RemoveFromRegistry(Button.Label)
-                    Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' }) --testing
+                    Library:AddToRegistry(Button.Label, { TextColor3 = Color }) --testing
 
-                    Button.Label.TextColor3 = Library.FontColor
+                    Button.Label.TextColor3 = Button.Risky and Library.RiskColor or Library.FontColor
                     Button.Label.Text = Button.Text
                     task.defer(rawset, Button, 'Locked', false)
 
