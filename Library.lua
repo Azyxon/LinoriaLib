@@ -1517,7 +1517,11 @@ do
                     Library:AddToRegistry(Button.Label, { TextColor3 = 'AccentColor' })
 
                     Button.Label.TextColor3 = Library.AccentColor
-                    Button.Label.Text = 'Are you sure?'
+                    if Button.ClickText then
+                       Button.Label.Text = Button.ClickText
+                    else
+                        Button.Label.Text = 'Are you sure?'  
+                    end
                     Button.Locked = true
 
                     local clicked = WaitForEvent(Button.Outer.InputBegan, 0.5, ValidateClick)
@@ -1534,6 +1538,12 @@ do
                     end
 
                     return
+                end
+
+                if Button.Risky then
+                    Library:RemoveFromRegistry(Button.Label)
+                     Button.Label.TextColor3 = Library.RiskColor
+                    Library:AddToRegistry(Button.Label, { TextColor3 = 'RiskColor' })
                 end
 
                 Library:SafeCallback(Button.Func);
