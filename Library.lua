@@ -1836,7 +1836,7 @@ do
                 Library:Notify("Enable Unsafe Features to use this feature.\n -> Settings -> Menu -> Unsafe Features", 5, true)
                 return
             end
-            return Info.Callback or function(Value) end
+            return Info.Callback
         end
 
         local Toggle = {
