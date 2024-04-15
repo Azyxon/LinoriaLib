@@ -2082,7 +2082,7 @@ do
                 DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
             elseif Info.HideMax then
                 DisplayLabel.Text = string.format('%s', Slider.Value .. Suffix)
-            elseif Info.Custom[Slider.Value] then
+            elseif Info.Custom and Info.Custom[Slider.Value] then
                 DisplayLabel.Text = Info.Custom[Slider.Value]
             else
                 DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
