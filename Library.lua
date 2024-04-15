@@ -1978,7 +1978,6 @@ do
             Min = Info.Min;
             Max = Info.Max;
             Rounding = Info.Rounding;
-            Custom = Info.Custom;
             MaxSize = 232;
             Type = 'Slider';
             Callback = Info.Callback or function(Value) end;
@@ -2077,6 +2076,7 @@ do
 
         function Slider:Display()
             local Suffix = Info.Suffix or '';
+            local Custom = Info.Custom or nil;
 
             if Info.Compact then
                 DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
