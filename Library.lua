@@ -1978,6 +1978,7 @@ do
             Min = Info.Min;
             Max = Info.Max;
             Rounding = Info.Rounding;
+            Custom = Info.Custom;
             MaxSize = 232;
             Type = 'Slider';
             Callback = Info.Callback or function(Value) end;
@@ -2081,6 +2082,8 @@ do
                 DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
             elseif Info.HideMax then
                 DisplayLabel.Text = string.format('%s', Slider.Value .. Suffix)
+            elseif Info.Custom[Slider.Value] then
+                DisplayLabel.Text = Info.Custom[Slider.Value]
             else
                 DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
             end
