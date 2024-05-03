@@ -2933,7 +2933,7 @@ function Library:Notify(Text, Time)
         Parent = NotifyOuter;
     });
 
-    function Notify:SetType(type)
+    function Funcs:SetType(type)
 		Type = type
 	end
     
