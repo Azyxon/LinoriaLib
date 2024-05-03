@@ -1252,7 +1252,8 @@ do
                 wait(0.2);
 
                 local Event;
-                Event = InputService.InputBegan:Connect(function(Input)
+                Event = InputService.InputBegan:Connect(function(Input, Processed)
+                    if Processed then return end
                     local Key;
 
                     if Input.UserInputType == Enum.UserInputType.Keyboard then
@@ -3700,9 +3701,6 @@ function Library:CreateWindow(...)
     end
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
-        if Processed then
-            return
-        end
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
             if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Library.ToggleKeybind.Value then
                 task.spawn(Library.Toggle)
