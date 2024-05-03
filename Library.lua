@@ -2858,8 +2858,7 @@ function Library:SetWatermark(Text)
     Library.WatermarkText.Text = Text;
 end;
 
-function Library:Notify(Text, Time, type)
-    Type = type or nil
+function Library:Notify(Text, Time, Warn)
     local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
 
     YSize = YSize + 7
@@ -2925,25 +2924,17 @@ function Library:Notify(Text, Time, type)
     });
 
     local LeftColor = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
+        BackgroundColor3 = Warn and Color3.fromRGB(235, 233, 63) or Library.AccentColor;
         BorderSizePixel = 0;
         Position = UDim2.new(0, -1, 0, -1);
         Size = UDim2.new(0, 3, 1, 2);
         ZIndex = 104;
         Parent = NotifyOuter;
     });
-    
-    if Type == "error" then
-        local alert_color = Color3.fromHSV(0, 1, (math.sin(t * 6)+1)/2)
-		LeftColor.BackgroundColor3 = alert_color
-    elseif Type == "alert" then
-        local alert_color = Color3.fromHSV(42.5/255, 1, (math.sin(t * 6)+1)/2)
-		LeftColor.BackgroundColor3 = alert_color
-    end
 
-    --Library:AddToRegistry(LeftColor, {
-        --BackgroundColor3 = Warn and Color3.fromRGB(235, 233, 63) or 'AccentColor';
-    --}, true);
+    Library:AddToRegistry(LeftColor, {
+        BackgroundColor3 = Warn and Color3.fromRGB(235, 233, 63) or 'AccentColor';
+    }, true);
 
     pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
 
