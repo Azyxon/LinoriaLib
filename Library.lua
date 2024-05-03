@@ -2858,8 +2858,8 @@ function Library:SetWatermark(Text)
     Library.WatermarkText.Text = Text;
 end;
 
-function Library:Notify(Text, Time)
-    local Type
+function Library:Notify(Text, Time, type)
+    Type = type or nil
     local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
 
     YSize = YSize + 7
@@ -2932,10 +2932,6 @@ function Library:Notify(Text, Time)
         ZIndex = 104;
         Parent = NotifyOuter;
     });
-
-    function Funcs:SetType(type)
-		Type = type
-	end
     
     if Type == "error" then
         local alert_color = Color3.fromHSV(0, 1, (math.sin(t * 6)+1)/2)
