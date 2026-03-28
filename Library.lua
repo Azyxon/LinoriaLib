@@ -15,7 +15,7 @@ local ScreenGui = Instance.new('ScreenGui');
 ProtectGui(ScreenGui);
 
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-ScreenGui.Parent = LocalPlayer.PlayerGui;
+ScreenGui.Parent = CoreGui; -- in coregui because ui is under the chat
 
 local Toggles = {};
 local Options = {};
@@ -2415,6 +2415,94 @@ end;
 
 -- < Create other UI elements >
 do
+    do -- Spectators List
+        local SpectatorsOuter = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0, 0.5);
+            BorderColor3 = Color3.new(0, 0, 0);
+            Position = UDim2.new(0, 10, 0.5, 0);
+            Size = UDim2.new(0, 210, 0, 20);
+            Visible = false;
+            ZIndex = 100;
+            Parent = Library.ScreenGui;
+        });
+
+        local SpectatorsInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.new(1, 0, 1, 0);
+            ZIndex = 101;
+            Parent = SpectatorsOuter;
+        });
+
+        Library:AddToRegistry(SpectatorsInner, {
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
+        }, true);
+
+        local ColorFrame = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, 0, 0, 2);
+            ZIndex = 102;
+            Parent = SpectatorsInner;
+        });
+
+        Library:AddToRegistry(ColorFrame, {
+            BackgroundColor3 = 'AccentColor';
+        }, true);
+
+        local SpectatorsLabel = Library:CreateLabel({
+            Size = UDim2.new(1, 0, 0, 20);
+            Position = UDim2.fromOffset(5, 2),
+            TextXAlignment = Enum.TextXAlignment.Left,
+
+            Text = 'Spectators';
+            ZIndex = 104;
+            Parent = SpectatorsInner;
+        });
+
+        local SpectatorsContainer = Library:Create('Frame', {
+            Visible = true;
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 1, -20);
+            Position = UDim2.new(0, 0, 0, 20);
+            ZIndex = 100;
+            Parent = SpectatorsInner;
+        });
+
+        Library:Create('UIListLayout', {
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = SpectatorsContainer;
+        });
+
+        Library:Create('UIPadding', {
+            PaddingLeft = UDim.new(0, 5),
+            Parent = SpectatorsContainer,
+        })
+
+        Library.SpectatorsFrame = SpectatorsOuter;
+        Library.SpectatorsContainer = SpectatorsContainer;
+
+        Library:MakeDraggable(SpectatorsOuter);
+
+        function Library:UpdateSpectatorsSize()
+            local XSize, YSize = 0, 0
+
+            for _, Label in next, Library.SpectatorsContainer:GetChildren() do
+                if Label:IsA('TextLabel') and Label.Visible then
+                    YSize = YSize + 18;
+                    if (Label.TextBounds.X > XSize) then
+                        XSize = Label.TextBounds.X
+                    end
+                end;
+            end;
+
+            Library.SpectatorsFrame.Size = UDim2.new(0, math.max(XSize + 10, 210), 0, YSize + 23)
+        end
+    end
+
     Library.NotificationArea = Library:Create('Frame', {
         BackgroundTransparency = 1;
         Position = UDim2.new(0, 0, 0, 40);
@@ -2553,6 +2641,8 @@ do
     Library.KeybindContainer = KeybindContainer;
     Library:MakeDraggable(KeybindOuter);
 end;
+
+
 
 function Library:SetWatermarkVisibility(Bool)
     Library.Watermark.Visible = Bool;
