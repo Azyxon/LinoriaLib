@@ -1036,7 +1036,7 @@ do
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
             BorderMode = Enum.BorderMode.Inset;
-            Size = UDim2.new(1, 0, 1, 0);
+            Size = UDim2.new(1, 0, 1.33, 0);
             ZIndex = 15;
             Parent = ModeSelectOuter;
         });
@@ -1061,7 +1061,7 @@ do
             Parent = Library.KeybindContainer;
         }, true);
 
-        local Modes = Info.Modes or { 'Always', 'Toggle', 'Hold' };
+        local Modes = Info.Modes or { 'Always', 'Toggle', 'Hold', 'Press' };
         local ModeButtons = {};
 
         for Idx, Mode in next, Modes do
@@ -1228,7 +1228,7 @@ do
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
             if (not Picking) then
-                if KeyPicker.Mode == 'Toggle' then
+                if KeyPicker.Mode == 'Toggle' or KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
                         if Key == 'MB1' and Input.UserInputType == Enum.UserInputType.MouseButton1
@@ -1257,6 +1257,20 @@ do
 
         Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
             if (not Picking) then
+                if KeyPicker.Mode == 'Press' then
+                    local Key = KeyPicker.Value;
+                    if Key == 'MB1' or Key == 'MB2' then
+                        if Key == 'MB1' and Input.UserInputType == Enum.UserInputType.MouseButton1
+                        or Key == 'MB2' and Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                            KeyPicker.Toggled = false
+                        end;
+                    elseif Input.UserInputType == Enum.UserInputType.Keyboard then
+                        if Input.KeyCode.Name == Key then
+                            KeyPicker.Toggled = false
+                        end;
+                    end;
+                end
+
                 KeyPicker:Update();
             end;
         end))
