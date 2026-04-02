@@ -3663,13 +3663,54 @@ function Library:CreateWindow(...)
     local Toggled = false;
     local Fading = false;
 
+    local FadeTargets = nil;
+    local FadeTargetsDirty = true;
+
+    local function BuildFadeTargets()
+        FadeTargets = {};
+        for _, Desc in next, Outer:GetDescendants() do
+            local props;
+            if Desc:IsA('ImageLabel') then
+                props = { 'ImageTransparency', 'BackgroundTransparency' };
+            elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                props = { 'TextTransparency' };
+            elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
+                props = { 'BackgroundTransparency' };
+            elseif Desc:IsA('UIStroke') then
+                props = { 'Transparency' };
+            end;
+
+            if props then
+                local Cache = TransparencyCache[Desc];
+                if not Cache then Cache = {}; TransparencyCache[Desc] = Cache; end;
+
+                for _, Prop in next, props do
+                    if not Cache[Prop] then
+                        Cache[Prop] = Desc[Prop];
+                    end;
+                    if Cache[Prop] ~= 1 then
+                        table.insert(FadeTargets, { Desc, Prop, Cache[Prop] });
+                    end;
+                end;
+            end;
+        end;
+        FadeTargetsDirty = false;
+    end;
+
+    Outer.DescendantAdded:Connect(function() FadeTargetsDirty = true; end);
+    Outer.DescendantRemoving:Connect(function() FadeTargetsDirty = true; end);
+
     function Library:Toggle()
         if Fading then return; end;
 
         local FadeTime = Config.MenuFadeTime;
-        Fading = true;
-        Toggled = (not Toggled);
+        Fading  = true;
+        Toggled = not Toggled;
         ModalElement.Modal = Toggled;
+
+        if FadeTargetsDirty or not FadeTargets then
+            BuildFadeTargets();
+        end;
 
         if Toggled then
             Outer.Visible = true;
@@ -3679,22 +3720,22 @@ function Library:CreateWindow(...)
 
                 local Cursor = Drawing.new('Triangle');
                 Cursor.Thickness = 1;
-                Cursor.Filled = true;
-                Cursor.Visible = true;
+                Cursor.Filled    = true;
+                Cursor.Visible   = true;
 
                 local CursorOutline = Drawing.new('Triangle');
                 CursorOutline.Thickness = 1;
-                CursorOutline.Filled = false;
-                CursorOutline.Color = Color3.new(0, 0, 0);
-                CursorOutline.Visible = true;
+                CursorOutline.Filled    = false;
+                CursorOutline.Color     = Color3.new(0, 0, 0);
+                CursorOutline.Visible   = true;
 
                 while Toggled and ScreenGui.Parent do
                     InputService.MouseIconEnabled = false;
                     local mPos = InputService:GetMouseLocation();
-                    Cursor.Color = Library.AccentColor;
-                    Cursor.PointA = Vector2.new(mPos.X, mPos.Y);
+                    Cursor.Color  = Library.AccentColor;
+                    Cursor.PointA = Vector2.new(mPos.X,      mPos.Y);
                     Cursor.PointB = Vector2.new(mPos.X + 16, mPos.Y + 6);
-                    Cursor.PointC = Vector2.new(mPos.X + 6, mPos.Y + 16);
+                    Cursor.PointC = Vector2.new(mPos.X + 6,  mPos.Y + 16);
                     CursorOutline.PointA = Cursor.PointA;
                     CursorOutline.PointB = Cursor.PointB;
                     CursorOutline.PointC = Cursor.PointC;
@@ -3707,33 +3748,34 @@ function Library:CreateWindow(...)
             end);
         end;
 
-        for _, Desc in next, Outer:GetDescendants() do
-            local Properties = {};
+        local targets   = FadeTargets;
+        local startTime = tick();
+        local isOpening = Toggled;
 
-            if Desc:IsA('ImageLabel') then
-                table.insert(Properties, 'ImageTransparency');
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
-                table.insert(Properties, 'TextTransparency');
-            elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('UIStroke') then
-                table.insert(Properties, 'Transparency');
+        task.spawn(function()
+            local alpha = 0;
+            repeat
+                alpha = math.clamp((tick() - startTime) / FadeTime, 0, 1);
+
+                for _, entry in next, targets do
+                    local inst, prop, cached = entry[1], entry[2], entry[3];
+                    local value = isOpening
+                        and (cached + (1 - cached) * (1 - alpha))
+                        or  (cached * (1 - alpha) + alpha);
+                    pcall(function() inst[prop] = value; end);
+                end;
+
+                RenderStepped:Wait();
+            until alpha >= 1;
+
+            for _, entry in next, targets do
+                local inst, prop, cached = entry[1], entry[2], entry[3];
+                pcall(function() inst[prop] = isOpening and cached or 1; end);
             end;
 
-            local Cache = TransparencyCache[Desc];
-            if (not Cache) then Cache = {}; TransparencyCache[Desc] = Cache; end;
-
-            for _, Prop in next, Properties do
-                if not Cache[Prop] then Cache[Prop] = Desc[Prop]; end;
-                if Cache[Prop] == 1 then continue; end;
-                TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), { [Prop] = Toggled and Cache[Prop] or 1 }):Play();
-            end;
-        end;
-
-        task.wait(FadeTime);
-        Outer.Visible = Toggled;
-        Fading = false;
+            Outer.Visible = Toggled;
+            Fading = false;
+        end);
     end
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
