@@ -2956,7 +2956,7 @@ function Library:CreateWindow(...)
         Library:AddToRegistry(UIStroke, { Color = 'AccentColor'; });
 
         Library:Create('UIListLayout', {
-            Padding = UDim.new(0, 55);
+            Padding = UDim.new(0, 45);
             FillDirection = Enum.FillDirection.Horizontal;
             HorizontalAlignment = Enum.HorizontalAlignment.Center;
             VerticalAlignment = Enum.VerticalAlignment.Center;
