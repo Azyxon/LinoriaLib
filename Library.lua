@@ -2918,16 +2918,32 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
+        local PADDING = 8 -- px from edges
         local SUBTAB_ROW_H  = 60;  -- px height of the icon button row
         local SUBTAB_OFFSET = SUBTAB_ROW_H + 3; -- gap before content
 
         local SubTabRow = Library:Create('Frame', {
             BackgroundTransparency = 1;
-            Position = UDim2.new(0, 0, 0, 8 - 1);
-            Size = UDim2.new(1, 0, 0, SUBTAB_ROW_H);
+            Position = UDim2.new(0, PADDING, 0, 8 - 1);
+            Size = UDim2.new(1, -PADDING * 2, 0, SUBTAB_ROW_H);
             ZIndex = 3;
             Visible = false;
             Parent = TabFrame;
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 8);
+            Parent = SubTabRow;
+        })
+
+        local UIStroke = Library:Create('UIStroke', {
+            Thickness = 1;
+            Color = Library.AccentColor;
+            Parent = SubTabRow;
+        })
+
+        Library:AddToRegistry(UIStroke, {
+            Color = 'AccentColor';
         });
 
         Library:Create('UIListLayout', {

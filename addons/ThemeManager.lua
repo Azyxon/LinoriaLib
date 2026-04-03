@@ -74,6 +74,7 @@ local ThemeManager = {} do
 
 		if isDefault then
 			Options.ThemeManager_ThemeList:SetValue(theme)
+			Library:UpdateColorsUsingRegistry()
 		else
 			self:ApplyTheme(theme)
 		end
