@@ -2776,7 +2776,7 @@ function Library:CreateWindow(...)
         Config.Position = UDim2.fromScale(0.5, 0.5)
     end
 
-    local Window = { Tabs = {}; };
+    local Window = { Tabs = {}; TabCount = 0; };
 
     local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
@@ -2846,6 +2846,7 @@ function Library:CreateWindow(...)
 
     local TabListLayout = Library:Create('UIListLayout', {
         Padding = UDim.new(0, Config.TabPadding);
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
         FillDirection = Enum.FillDirection.Horizontal;
         SortOrder = Enum.SortOrder.LayoutOrder;
         Parent = TabArea;
@@ -2861,6 +2862,14 @@ function Library:CreateWindow(...)
     });
 
     Library:AddToRegistry(TabContainer, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; });
+
+    function Window:UpdateTabSizes()
+        local Padding = (Window.TabCount - 1) * Config.TabPadding + 2
+
+        for _,v in next, Window.Tabs do
+            v.Button.Size = UDim2.new(1 / Window.TabCount, -Padding / Window.TabCount, 1, 0)
+        end
+    end
 
     function Window:SetWindowTitle(Title)
         WindowLabel.Text = Title;
@@ -2885,6 +2894,8 @@ function Library:CreateWindow(...)
             ZIndex = 1;
             Parent = TabArea;
         });
+
+        Tab.Button = TabButton
 
         Library:AddToRegistry(TabButton, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
 
@@ -3663,6 +3674,9 @@ function Library:CreateWindow(...)
         end;
 
         Window.Tabs[Name] = Tab;
+        Window.TabCount += 1;
+
+        Window:UpdateTabSizes()
         return Tab;
     end;
 
