@@ -3040,6 +3040,8 @@ function Library:CreateWindow(...)
                 Parent = SubBtnOuter;
             });
 
+            Library:AddToRegistry(SubBtnIcon, { ImageColor3 = 'FontColor'; });
+
             local SubLeftSide = Library:Create('ScrollingFrame', {
                 BackgroundTransparency = 1;
                 BorderSizePixel = 0;
