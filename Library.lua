@@ -2918,7 +2918,7 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        local SUBTAB_ROW_H  = 44;  -- px height of the icon button row
+        local SUBTAB_ROW_H  = 60;  -- px height of the icon button row
         local SUBTAB_OFFSET = SUBTAB_ROW_H + 3; -- gap before content
 
         local SubTabRow = Library:Create('Frame', {
@@ -2931,7 +2931,7 @@ function Library:CreateWindow(...)
         });
 
         Library:Create('UIListLayout', {
-            Padding = UDim.new(0, 6);
+            Padding = UDim.new(0, 55);
             FillDirection = Enum.FillDirection.Horizontal;
             HorizontalAlignment = Enum.HorizontalAlignment.Center;
             VerticalAlignment = Enum.VerticalAlignment.Center;
@@ -3017,7 +3017,7 @@ function Library:CreateWindow(...)
                 BackgroundTransparency = 1;
                 AnchorPoint = Vector2.new(0.5, 0.5);
                 Position = UDim2.new(0.5, 0, 0.5, 0);
-                Size = UDim2.new(0, 64, 0, 64);
+                Size = UDim2.new(0, 55, 0, 55);
                 Image = Icon or '';
                 ImageColor3 = Library.FontColor;
                 ZIndex = 4;
