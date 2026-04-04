@@ -1864,6 +1864,7 @@ do
             Parent = Container;
         });
 
+        Slider.MaxSize = SliderOuter.AbsoluteSize.X
         Library:AddToRegistry(SliderOuter, { BorderColor3 = 'Black'; });
 
         local SliderInner = Library:Create('Frame', {
