@@ -1489,8 +1489,8 @@ do
             ProcessButtonParams('SubButton', SubButton, ...)
             self.Outer.Size = UDim2.new(0.5, -2, 0, 20)
             SubButton.Outer, SubButton.Inner, SubButton.Label = CreateBaseButton(SubButton)
-            SubButton.Outer.Position = UDim2.new(0.5, 0, 0, 0)
-            SubButton.Outer.Size = UDim2.new(1, 0, 1, 0)
+            SubButton.Outer.Position = UDim2.new(0.5, 2, 0, 0)
+            SubButton.Outer.Size = UDim2.new(0.5, -4, 1, 0)
             SubButton.Outer.Parent = self.Outer
 
             function SubButton:AddTooltip(tooltip)
