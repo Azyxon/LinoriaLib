@@ -206,7 +206,7 @@ local SaveManager = {} do
 
 		tab:AddDivider()
 
-		tab:AddButton('Create config', function()
+		local CreateConfigButton = tab:AddButton('Create config', function()
 			local name = Options.SaveManager_ConfigName.Value
 
 			if name:gsub(' ', '') == '' then 
@@ -222,15 +222,19 @@ local SaveManager = {} do
 
 			Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
 			Options.SaveManager_ConfigList:SetValue(nil)
-		end):AddButton('Load config', function()
-			local name = Options.SaveManager_ConfigList.Value
+		end)
 
-			local success, err = self:Load(name)
-			if not success then
-				return self.Library:Notify('Failed to load config: ' .. err)
-			end
+		task.delay(0.1, function()
+			CreateConfigButton:AddButton('Load config', function()
+				local name = Options.SaveManager_ConfigList.Value
 
-			self.Library:Notify(string.format('Loaded config %q', name))
+				local success, err = self:Load(name)
+				if not success then
+					return self.Library:Notify('Failed to load config: ' .. err)
+				end
+
+				self.Library:Notify(string.format('Loaded config %q', name))
+			end)
 		end)
 
 		tab:AddButton('Overwrite config', function()
