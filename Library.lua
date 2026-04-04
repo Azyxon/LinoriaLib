@@ -2990,6 +2990,19 @@ function Library:CreateWindow(...)
             Parent = TabFrame;
         });
 
+        local FullTabSide = Library:Create('ScrollingFrame', {
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
+            Size = UDim2.new(1, -16 + 2, 0, 507 + 2);
+            CanvasSize = UDim2.new(0, 0, 0, 0);
+            BottomImage = '';
+            TopImage = '';
+            ScrollBarThickness = 0;
+            ZIndex = 2;
+            Parent = TabFrame;
+        });
+
         Library:Create('UIListLayout', {
             Padding = UDim.new(0, 8);
             FillDirection = Enum.FillDirection.Vertical;
@@ -3006,7 +3019,15 @@ function Library:CreateWindow(...)
             Parent = RightSide;
         });
 
-        for _, Side in next, { LeftSide, RightSide } do
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 8);
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            HorizontalAlignment = Enum.HorizontalAlignment.Center;
+            Parent = FullTabSide;
+        });
+
+        for _, Side in next, { LeftSide, RightSide, FullTabSide } do
             Side:WaitForChild('UIListLayout'):GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
                 Side.CanvasSize = UDim2.fromOffset(0, Side.UIListLayout.AbsoluteContentSize.Y);
             end);
@@ -3024,6 +3045,7 @@ function Library:CreateWindow(...)
                 SubTabRow.Visible = true;
                 LeftSide.Visible  = false;
                 RightSide.Visible = false;
+                FullTabSide.Visible = false;
             end
 
             Tab.SubTabCount = Tab.SubTabCount + 1;
@@ -3079,6 +3101,20 @@ function Library:CreateWindow(...)
                 Parent = TabFrame;
             });
 
+            local SubFullTabSide = Library:Create('ScrollingFrame', {
+                BackgroundTransparency = 1;
+                BorderSizePixel = 0;
+                Position = UDim2.new(0, 8 - 1, 0, 8 - 1 + SUBTAB_OFFSET);
+                Size = UDim2.new(1, -16 + 2, 0, 507 + 2 - SUBTAB_OFFSET);
+                CanvasSize = UDim2.new(0, 0, 0, 0);
+                BottomImage = '';
+                TopImage = '';
+                ScrollBarThickness = 0;
+                ZIndex = 2;
+                Visible = false;
+                Parent = TabFrame;
+            });
+
             Library:Create('UIListLayout', {
                 Padding = UDim.new(0, 8);
                 FillDirection = Enum.FillDirection.Vertical;
@@ -3095,7 +3131,15 @@ function Library:CreateWindow(...)
                 Parent = SubRightSide;
             });
 
-            for _, Side in next, { SubLeftSide, SubRightSide } do
+            Library:Create('UIListLayout', {
+                Padding = UDim.new(0, 8);
+                FillDirection = Enum.FillDirection.Vertical;
+                SortOrder = Enum.SortOrder.LayoutOrder;
+                HorizontalAlignment = Enum.HorizontalAlignment.Center;
+                Parent = SubFullTabSide;
+            });
+
+            for _, Side in next, { SubLeftSide, SubRightSide, SubFullTabSide } do
                 Side:WaitForChild('UIListLayout'):GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
                     Side.CanvasSize = UDim2.fromOffset(0, Side.UIListLayout.AbsoluteContentSize.Y);
                 end);
@@ -3107,12 +3151,16 @@ function Library:CreateWindow(...)
                     Tab.SubTabList[i]:Hide();
                 end;
 
+                SubFullTabSide.Visible = true;
+
                 SubLeftSide.Visible  = true;
                 SubRightSide.Visible = true;
                 SubBtnIcon.ImageColor3 = Library.AccentColor;
             end;
 
             function SubTab:Hide()
+                SubFullTabSide.Visible = false;
+
                 SubLeftSide.Visible  = false;
                 SubRightSide.Visible = false;
                 SubBtnIcon.ImageColor3 = Library.FontColor;
@@ -3133,7 +3181,7 @@ function Library:CreateWindow(...)
                     BorderMode = Enum.BorderMode.Inset;
                     Size = UDim2.new(1, 0, 0, 507 + 2);
                     ZIndex = 2;
-                    Parent = Info.Side == 1 and SubLeftSide or SubRightSide;
+                    Parent = (Info.Side == 1 and SubLeftSide) or (Info.Side == 2 and SubRightSide) or (Info.Side == 3 and SubFullTabSide);
                 });
 
                 Library:AddToRegistry(BoxOuter, {
@@ -3213,6 +3261,10 @@ function Library:CreateWindow(...)
 
             function SubTab:AddRightGroupbox(Name)
                 return SubTab:AddGroupbox({ Side = 2; Name = Name; });
+            end;
+
+            function SubTab:AddTabSizeGroupbox(Name)
+                return SubTab:AddGroupbox({ Side = 3; Name = Name; });
             end;
 
             function SubTab:AddTabbox(Info)
@@ -3421,7 +3473,7 @@ function Library:CreateWindow(...)
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
-                Parent = Info.Side == 1 and LeftSide or RightSide;
+                Parent = (Info.Side == 1 and LeftSide) or (Info.Side == 2 and RightSide) or (Info.Side == 3 and FullTabSide);
             });
 
             Library:AddToRegistry(BoxOuter, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
@@ -3498,6 +3550,10 @@ function Library:CreateWindow(...)
 
         function Tab:AddRightGroupbox(Name)
             return Tab:AddGroupbox({ Side = 2; Name = Name; });
+        end;
+
+        function Tab:AddTabSizeGroupbox(Name)
+            return Tab:AddGroupbox({ Side = 3; Name = Name; });
         end;
 
         function Tab:AddTabbox(Info)
