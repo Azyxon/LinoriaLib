@@ -2929,7 +2929,7 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        local PADDING = 7 -- px from edges
+        local PADDING = 5 -- px from edges
         local SUBTAB_ROW_H  = 60;  -- px height of the icon button row
         local SUBTAB_OFFSET = SUBTAB_ROW_H + 3; -- gap before content
 
