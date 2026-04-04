@@ -3000,6 +3000,7 @@ function Library:CreateWindow(...)
             TopImage = '';
             ScrollBarThickness = 0;
             ZIndex = 2;
+            Visible = false;
             Parent = TabFrame;
         });
 
@@ -3038,6 +3039,8 @@ function Library:CreateWindow(...)
             local SubTab = {
                 Groupboxes = {};
                 Tabboxes   = {};
+
+                HasBigGroupbox = false;
             };
 
             if not Tab.HasSubTabs then
@@ -3151,7 +3154,9 @@ function Library:CreateWindow(...)
                     Tab.SubTabList[i]:Hide();
                 end;
 
-                SubFullTabSide.Visible = true;
+                if SubTab.HasBigGroupbox then
+                    SubFullTabSide.Visible = true;
+                end
 
                 SubLeftSide.Visible  = true;
                 SubRightSide.Visible = true;
@@ -3174,6 +3179,10 @@ function Library:CreateWindow(...)
 
             function SubTab:AddGroupbox(Info)
                 local Groupbox = {};
+
+                if Info.Side == 3 then
+                    SubTab.HasBigGroupbox = true;
+                end
 
                 local BoxOuter = Library:Create('Frame', {
                     BackgroundColor3 = Library.BackgroundColor;
