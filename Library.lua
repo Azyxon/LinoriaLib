@@ -2929,13 +2929,13 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        local PADDING = 5 -- px from edges
+        local PADDING = 7 -- px from edges
         local SUBTAB_ROW_H  = 60;  -- px height of the icon button row
         local SUBTAB_OFFSET = SUBTAB_ROW_H + 3; -- gap before content
 
         local SubTabRow = Library:Create('Frame', {
             BackgroundTransparency = 1;
-            Position = UDim2.new(0, PADDING, 0, 8 - 1);
+            Position = UDim2.new(0, 5, 0, 8 - 1);
             Size = UDim2.new(1, -PADDING * 1.65, 0, SUBTAB_ROW_H);
             ZIndex = 3;
             Visible = false;
