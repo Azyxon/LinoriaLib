@@ -66,6 +66,14 @@ table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
     end
 end))
 
+UserInputService.TextBoxFocused:Connect(function()
+    Library.Typing = true
+end)
+
+UserInputService.TextBoxFocusReleased:Connect(function()
+    Library.Typing = false
+end)
+
 local function GetPlayersString()
     local PlayerList = Players:GetPlayers();
 
@@ -1136,6 +1144,10 @@ do
             if KeyPicker.Mode == 'Always' then
                 return true;
             elseif KeyPicker.Mode == 'Hold' then
+                if Library.Typing then
+                    return
+                end
+
                 if KeyPicker.Value == 'None' then return false; end
                 local Key = KeyPicker.Value;
                 if Key == 'MB1' or Key == 'MB2' then
@@ -1228,7 +1240,7 @@ do
         end);
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
-            if (not Picking) then
+            if (not Picking and not GPE) then
                 if KeyPicker.Mode == 'Toggle' or KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -1256,7 +1268,11 @@ do
             end;
         end))
 
-        Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+        Library:GiveSignal(InputService.InputEnded:Connect(function(Input, GPE)
+            if GPE then
+                return
+            end
+
             if (not Picking) then
                 if KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
