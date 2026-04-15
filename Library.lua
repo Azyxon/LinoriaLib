@@ -66,11 +66,11 @@ table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
     end
 end))
 
-UserInputService.TextBoxFocused:Connect(function()
+InputService.TextBoxFocused:Connect(function()
     Library.Typing = true
 end)
 
-UserInputService.TextBoxFocusReleased:Connect(function()
+InputService.TextBoxFocusReleased:Connect(function()
     Library.Typing = false
 end)
 
