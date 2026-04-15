@@ -1240,7 +1240,7 @@ do
         end);
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
-            if (not Picking and not GPE) then
+            if (not Picking and not Library.Typing) then
                 if KeyPicker.Mode == 'Toggle' or KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -1269,11 +1269,7 @@ do
         end))
 
         Library:GiveSignal(InputService.InputEnded:Connect(function(Input, GPE)
-            if GPE then
-                return
-            end
-
-            if (not Picking) then
+            if (not Picking and not Library.Typing) then
                 if KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
