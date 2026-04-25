@@ -44,6 +44,8 @@ local Library = {
 
     Signals = {};
     ScreenGui = ScreenGui;
+
+    DetachedBoxes = {};
 };
 
 local RainbowStep = 0
@@ -65,14 +67,6 @@ table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
         Library.CurrentRainbowColor = Color3.fromHSV(Hue, 0.8, 1);
     end
 end))
-
-InputService.TextBoxFocused:Connect(function()
-    Library.Typing = true
-end)
-
-InputService.TextBoxFocusReleased:Connect(function()
-    Library.Typing = false
-end)
 
 local function GetPlayersString()
     local PlayerList = Players:GetPlayers();
@@ -204,7 +198,7 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         BorderColor3 = Library.OutlineColor,
 
         Size = UDim2.fromOffset(X + 5, Y + 4),
-        ZIndex = 100,
+        ZIndex = 500,
         Parent = Library.ScreenGui,
 
         Visible = false,
@@ -283,11 +277,13 @@ end;
 
 function Library:MouseIsOverOpenedFrame()
     for Frame, _ in next, Library.OpenedFrames do
-        local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
-
-        if Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
+        local ok, AbsPos, AbsSize = pcall(function()
+            return Frame.AbsolutePosition, Frame.AbsoluteSize
+        end)
+        if not ok then
+            Library.OpenedFrames[Frame] = nil
+        elseif Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
             and Mouse.Y >= AbsPos.Y and Mouse.Y <= AbsPos.Y + AbsSize.Y then
-
             return true;
         end;
     end;
@@ -310,6 +306,7 @@ function Library:UpdateDependencyBoxes()
 end;
 
 function Library:MapValue(Value, MinA, MaxA, MinB, MaxB)
+    if MaxA == MinA then return MinB end
     return (1 - ((Value - MinA) / (MaxA - MinA))) * MinB + ((Value - MinA) / (MaxA - MinA)) * MaxB;
 end;
 
@@ -382,6 +379,13 @@ function Library:Unload()
         Connection:Disconnect()
     end
 
+    for i = #Library.DetachedBoxes, 1, -1 do
+        local info = Library.DetachedBoxes[i]
+        if info.Placeholder then pcall(function() info.Placeholder:Destroy() end) end
+        if info.Window      then pcall(function() info.Window:Destroy()      end) end
+    end
+    Library.DetachedBoxes = {}
+
     if Library.OnUnload then
         Library.OnUnload()
     end
@@ -399,6 +403,253 @@ Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(Instance)
     end;
 end))
 
+local function CreatePlaceholder(ParentScrolling, placeholderSize, layoutOrder)
+    local Holder = Instance.new('Frame')
+    Holder.BackgroundTransparency = 1
+    Holder.Size          = placeholderSize
+    Holder.LayoutOrder   = layoutOrder
+    Holder.ZIndex        = 2
+    Holder.Parent        = ParentScrolling
+
+    local Outline = Instance.new('Frame')
+    Outline.BackgroundTransparency = 1
+    Outline.BorderSizePixel        = 0
+    Outline.Size     = UDim2.new(1, -4, 1, -4)
+    Outline.Position = UDim2.fromOffset(2, 2)
+    Outline.ZIndex   = 3
+    Outline.Parent   = Holder
+
+    local UIStroke = Instance.new('UIStroke')
+    UIStroke.Thickness = 2
+    UIStroke.Color     = Library.AccentColor
+    UIStroke.Transparency = 0.3
+    UIStroke.Parent    = Outline
+    Library:AddToRegistry(UIStroke, { Color = 'AccentColor' })
+
+    local HintLabel = Library:CreateLabel({
+        Size             = UDim2.new(1, 0, 1, 0);
+        TextSize         = 13;
+        Text             = '↩  Click to reattach';
+        TextColor3       = Library.AccentColor;
+        TextTransparency = 0.3;
+        ZIndex           = 4;
+        Parent           = Outline;
+    })
+    Library:RemoveFromRegistry(HintLabel)
+    Library:AddToRegistry(HintLabel, { TextColor3 = 'AccentColor' })
+
+    local alive    = true
+    local pulseDir = 1
+    local pulseVal = 0.3
+    local PulseConn = RunService.Heartbeat:Connect(function(dt)
+        if not alive then return end
+        pulseVal = pulseVal + dt * 1.2 * pulseDir
+        if pulseVal >= 0.85 then pulseDir = -1 end
+        if pulseVal <= 0.10 then pulseDir =  1 end
+        pcall(function()
+            UIStroke.Transparency    = pulseVal
+            HintLabel.TextTransparency = pulseVal
+        end)
+    end)
+
+    local P = {}
+    function P:Destroy()
+        alive = false
+        if PulseConn then PulseConn:Disconnect(); PulseConn = nil end
+        pcall(function() Library:RemoveFromRegistry(UIStroke)  end)
+        pcall(function() Library:RemoveFromRegistry(HintLabel) end)
+        pcall(function() Holder:Destroy() end)
+    end
+    function P:GetHolder() return Holder end
+    return P
+end
+
+local function MakeDetachable(dragRegion, parentScrolling, boxOuter, boxName, resizeCallback)
+
+    local DetachInfo = { Detached = false; Window = nil; Placeholder = nil; }
+
+    local DoReattach
+    local FloatOuter
+
+    local function DoDetach(dragOffsetX, dragOffsetY)
+        if DetachInfo.Detached then return end
+
+        local absPos   = boxOuter.AbsolutePosition
+        local absSize  = boxOuter.AbsoluteSize
+        local origLO   = boxOuter.LayoutOrder
+
+        DetachInfo._absSize = absSize
+        DetachInfo._origLO  = origLO
+        DetachInfo.Detached = true
+
+        DetachInfo.Placeholder = CreatePlaceholder(
+            parentScrolling,
+            UDim2.fromOffset(absSize.X, absSize.Y),
+            origLO
+        )
+
+        FloatOuter = Library:Create('Frame', {
+            BackgroundColor3 = Color3.new(0, 0, 0);
+            BorderColor3     = Library.AccentColor;
+            Position         = UDim2.fromOffset(absPos.X, absPos.Y);
+            Size             = UDim2.fromOffset(absSize.X + 2, absSize.Y + 2);
+            ZIndex           = 200;
+            ClipsDescendants = false;
+            Parent           = ScreenGui;
+        })
+        Library:AddToRegistry(FloatOuter, { BorderColor3 = 'AccentColor'; })
+
+        local ReattachBtn = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderColor3     = Library.AccentColorDark;
+            BorderMode       = Enum.BorderMode.Inset;
+            AnchorPoint      = Vector2.new(1, 0);
+            Position         = UDim2.new(1, 0, 0, -18);
+            Size             = UDim2.fromOffset(48, 16);
+            ZIndex           = 210;
+            Parent           = FloatOuter;
+        })
+        Library:AddToRegistry(ReattachBtn, { BackgroundColor3 = 'AccentColor'; BorderColor3 = 'AccentColorDark'; })
+        Library:OnHighlight(ReattachBtn, ReattachBtn,
+            { BackgroundColor3 = 'AccentColorDark' },
+            { BackgroundColor3 = 'AccentColor'     })
+
+        Library:CreateLabel({
+            Size     = UDim2.new(1, 0, 1, 0);
+            TextSize = 11;
+            Text     = '↩ dock';
+            ZIndex   = 211;
+            Parent   = ReattachBtn;
+        })
+
+        local function BumpZIndex(inst, delta)
+            pcall(function() inst.ZIndex = inst.ZIndex + delta end)
+            for _, c in next, inst:GetDescendants() do
+                pcall(function() c.ZIndex = c.ZIndex + delta end)
+            end
+        end
+        BumpZIndex(boxOuter, 200)
+
+        boxOuter.Parent   = FloatOuter
+        boxOuter.Position = UDim2.fromOffset(1, 1)
+        boxOuter.Size     = UDim2.fromOffset(absSize.X, absSize.Y)
+
+        DetachInfo.Window = FloatOuter
+        local function SyncFloatSize()
+            if not (DetachInfo.Detached and FloatOuter) then return end
+            local newH = boxOuter.AbsoluteSize.Y
+            if newH > 0 then
+                FloatOuter.Size = UDim2.fromOffset(absSize.X + 2, newH + 2)
+            end
+        end
+        DetachInfo._sizeConn = boxOuter:GetPropertyChangedSignal('AbsoluteSize'):Connect(SyncFloatSize)
+
+        dragRegion.InputBegan:Connect(function(Input)
+            if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+            if not DetachInfo.Detached then return end
+            local ox = Mouse.X - FloatOuter.AbsolutePosition.X
+            local oy = Mouse.Y - FloatOuter.AbsolutePosition.Y
+            while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                FloatOuter.Position = UDim2.fromOffset(Mouse.X - ox, Mouse.Y - oy)
+                RenderStepped:Wait()
+            end
+        end)
+
+        ReattachBtn.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                DoReattach(absSize, origLO)
+            end
+        end)
+
+        local placeholderReady = false
+        task.delay(0.35, function() placeholderReady = true end)
+        DetachInfo.Placeholder:GetHolder().InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and placeholderReady then
+                DoReattach(absSize, origLO)
+            end
+        end)
+
+        if dragOffsetX and dragOffsetY then
+            task.spawn(function()
+                RenderStepped:Wait()
+                while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                    FloatOuter.Position = UDim2.fromOffset(Mouse.X - dragOffsetX, Mouse.Y - dragOffsetY)
+                    RenderStepped:Wait()
+                end
+            end)
+        end
+
+        table.insert(Library.DetachedBoxes, DetachInfo)
+    end
+
+    DoReattach = function(absSize, origLO)
+        if not DetachInfo.Detached then return end
+        DetachInfo.Detached = false
+
+        local function UnbumpZIndex(inst, delta)
+            pcall(function() inst.ZIndex = inst.ZIndex - delta end)
+            for _, c in next, inst:GetDescendants() do
+                pcall(function() c.ZIndex = c.ZIndex - delta end)
+            end
+        end
+        UnbumpZIndex(boxOuter, 200)
+
+        boxOuter.Parent     = parentScrolling
+        boxOuter.Position   = UDim2.fromOffset(0, 0)
+        boxOuter.LayoutOrder = origLO
+        boxOuter.Size = UDim2.new(1, 0, 0, absSize.Y)
+
+        if DetachInfo._sizeConn then
+            DetachInfo._sizeConn:Disconnect()
+            DetachInfo._sizeConn = nil
+        end
+
+        if DetachInfo.Placeholder then
+            DetachInfo.Placeholder:Destroy()
+            DetachInfo.Placeholder = nil
+        end
+
+        if DetachInfo.Window then
+            pcall(function() Library:RemoveFromRegistry(FloatOuter) end)
+            DetachInfo.Window:Destroy()
+            DetachInfo.Window = nil
+            FloatOuter = nil
+        end
+
+        if resizeCallback then
+            task.defer(resizeCallback)
+        end
+
+        for i = #Library.DetachedBoxes, 1, -1 do
+            if Library.DetachedBoxes[i] == DetachInfo then
+                table.remove(Library.DetachedBoxes, i)
+            end
+        end
+    end
+
+    dragRegion.InputBegan:Connect(function(Input)
+        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if DetachInfo.Detached then return end
+
+        local startX = Mouse.X
+        local startY = Mouse.Y
+        local headerAbsPos = boxOuter.AbsolutePosition
+
+        while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+            local dx = Mouse.X - startX
+            local dy = Mouse.Y - startY
+            if math.sqrt(dx*dx + dy*dy) > 14 then
+                local ox = Mouse.X - headerAbsPos.X
+                local oy = Mouse.Y - headerAbsPos.Y
+                DoDetach(ox, oy)
+                return
+            end
+            RenderStepped:Wait()
+        end
+    end)
+
+    return DetachInfo
+end
 local BaseAddons = {};
 
 do
@@ -854,6 +1105,11 @@ do
                     Library.OpenedFrames[Frame] = nil;
                 end;
             end;
+            local topZ = 300
+            PickerFrameOuter.ZIndex = topZ
+            for _, c in next, PickerFrameOuter:GetDescendants() do
+                pcall(function() c.ZIndex = topZ + 1 end)
+            end
             PickerFrameOuter.Visible = true;
             Library.OpenedFrames[PickerFrameOuter] = true;
         end;
@@ -1144,10 +1400,6 @@ do
             if KeyPicker.Mode == 'Always' then
                 return true;
             elseif KeyPicker.Mode == 'Hold' then
-                if Library.Typing then
-                    return
-                end
-
                 if KeyPicker.Value == 'None' then return false; end
                 local Key = KeyPicker.Value;
                 if Key == 'MB1' or Key == 'MB2' then
@@ -1205,11 +1457,11 @@ do
                         if Text == '...' then Text = ''; end;
                         Text = Text .. '.';
                         DisplayLabel.Text = Text;
-                        wait(0.4);
+                        task.wait(0.4);
                     end;
                 end);
 
-                wait(0.2);
+                task.wait(0.2);
 
                 local Event;
                 Event = InputService.InputBegan:Connect(function(Input)
@@ -1235,12 +1487,16 @@ do
                 end);
 
             elseif Input.UserInputType == Enum.UserInputType.MouseButton2 and not Library:MouseIsOverOpenedFrame() then
+                ModeSelectOuter.ZIndex = 300
+                for _, c in next, ModeSelectOuter:GetDescendants() do
+                    pcall(function() c.ZIndex = 301 end)
+                end
                 ModeSelectOuter.Visible = true;
             end;
         end);
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
-            if (not Picking and not Library.Typing) then
+            if (not Picking) then
                 if KeyPicker.Mode == 'Toggle' or KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -1268,8 +1524,8 @@ do
             end;
         end))
 
-        Library:GiveSignal(InputService.InputEnded:Connect(function(Input, GPE)
-            if (not Picking and not Library.Typing) then
+        Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+            if (not Picking) then
                 if KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -1444,7 +1700,9 @@ do
                     connection:disconnect()
                     bindable:Fire(false)
                 end)
-                return bindable.Event:Wait()
+                local result = bindable.Event:Wait()
+                bindable:Destroy()
+                return result
             end
 
             local function ValidateClick(Input)
@@ -2280,6 +2538,11 @@ do
         end;
 
         function Dropdown:OpenDropdown()
+            local topZ = 300
+            ListOuter.ZIndex = topZ
+            for _, c in next, ListOuter:GetDescendants() do
+                pcall(function() c.ZIndex = topZ + 1 end)
+            end
             ListOuter.Visible = true;
             Library.OpenedFrames[ListOuter] = true;
             DropdownArrow.Rotation = 180;
@@ -2321,7 +2584,7 @@ do
             end;
         end);
 
-        InputService.InputBegan:Connect(function(Input)
+        Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
                 if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
@@ -2329,7 +2592,7 @@ do
                     Dropdown:CloseDropdown();
                 end;
             end;
-        end);
+        end));
 
         Dropdown:BuildDropdownList();
         Dropdown:Display();
@@ -2760,9 +3023,9 @@ function Library:Notify(Text, Time, Warn)
     pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
 
     task.spawn(function()
-        wait(Time or 5);
+        task.wait(Time or 5);
         pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, 0, 0, YSize), 'Out', 'Quad', 0.4, true);
-        wait(0.4);
+        task.wait(0.4);
         NotifyOuter:Destroy();
     end);
 end;
@@ -3161,11 +3424,14 @@ function Library:CreateWindow(...)
                 end);
             end;
 
-            
+            SubTab._IsSelected = false
+
             function SubTab:Show()
                 for i = 1, #Tab.SubTabList do
                     Tab.SubTabList[i]:Hide();
                 end;
+
+                SubTab._IsSelected = true
 
                 if SubTab.HasBigGroupbox then
                     SubFullTabSide.Visible = true;
@@ -3173,15 +3439,24 @@ function Library:CreateWindow(...)
 
                 SubLeftSide.Visible  = true;
                 SubRightSide.Visible = true;
+
                 SubBtnIcon.ImageColor3 = Library.AccentColor;
+                if Library.RegistryMap[SubBtnIcon] then
+                    Library.RegistryMap[SubBtnIcon].Properties.ImageColor3 = 'AccentColor';
+                end
             end;
 
             function SubTab:Hide()
-                SubFullTabSide.Visible = false;
+                SubTab._IsSelected = false
 
+                SubFullTabSide.Visible = false;
                 SubLeftSide.Visible  = false;
                 SubRightSide.Visible = false;
+
                 SubBtnIcon.ImageColor3 = Library.FontColor;
+                if Library.RegistryMap[SubBtnIcon] then
+                    Library.RegistryMap[SubBtnIcon].Properties.ImageColor3 = 'FontColor';
+                end
             end;
 
             SubBtnOuter.InputBegan:Connect(function(Input)
@@ -3273,6 +3548,19 @@ function Library:CreateWindow(...)
                 Groupbox:Resize();
 
                 SubTab.Groupboxes[Info.Name] = Groupbox;
+
+                local DragOverlay = Library:Create('Frame', {
+                    BackgroundTransparency = 1;
+                    Position = UDim2.fromOffset(0, 0);
+                    Size = UDim2.new(1, 0, 0, 20);
+                    ZIndex = 10;
+                    Parent = BoxInner;
+                })
+                local scrollParent = (Info.Side == 1 and SubLeftSide) or (Info.Side == 2 and SubRightSide) or (Info.Side == 3 and SubFullTabSide)
+                BoxOuter.LayoutOrder = #scrollParent:GetChildren()
+                MakeDetachable(DragOverlay, scrollParent, BoxOuter, Info.Name, function()
+                    Groupbox:Resize()
+                end)
 
                 return Groupbox;
             end;
@@ -3441,6 +3729,21 @@ function Library:CreateWindow(...)
 
                 SubTab.Tabboxes[Info.Name or ''] = Tabbox;
 
+                local DragOverlay2 = Library:Create('Frame', {
+                    BackgroundTransparency = 1;
+                    Position = UDim2.fromOffset(0, 0);
+                    Size = UDim2.new(1, 0, 0, 20);
+                    ZIndex = 15;
+                    Parent = BoxInner;
+                })
+                local scrollParent = Info.Side == 1 and SubLeftSide or SubRightSide
+                BoxOuter.LayoutOrder = #scrollParent:GetChildren()
+                MakeDetachable(DragOverlay2, scrollParent, BoxOuter, Info.Name or 'Tabbox', function()
+                    for _, T in next, Tabbox.Tabs do
+                        if T.Container and T.Container.Visible then T:Resize() end
+                    end
+                end)
+
                 return Tabbox;
             end;
 
@@ -3562,6 +3865,19 @@ function Library:CreateWindow(...)
             Groupbox:Resize();
 
             Tab.Groupboxes[Info.Name] = Groupbox;
+
+            local DragOverlay = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Position = UDim2.fromOffset(0, 0);
+                Size = UDim2.new(1, 0, 0, 20);
+                ZIndex = 10;
+                Parent = BoxInner;
+            })
+            local scrollParent = (Info.Side == 1 and LeftSide) or (Info.Side == 2 and RightSide) or (Info.Side == 3 and FullTabSide)
+            BoxOuter.LayoutOrder = #scrollParent:GetChildren()
+            MakeDetachable(DragOverlay, scrollParent, BoxOuter, Info.Name, function()
+                Groupbox:Resize()
+            end)
 
             return Groupbox;
         end;
@@ -3730,6 +4046,21 @@ function Library:CreateWindow(...)
 
             Tab.Tabboxes[Info.Name or ''] = Tabbox;
 
+            local DragOverlay = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Position = UDim2.fromOffset(0, 0);
+                Size = UDim2.new(1, 0, 0, 20);
+                ZIndex = 15;
+                Parent = BoxInner;
+            })
+            local scrollParent = Info.Side == 1 and LeftSide or RightSide
+            BoxOuter.LayoutOrder = #scrollParent:GetChildren()
+            MakeDetachable(DragOverlay, scrollParent, BoxOuter, Info.Name or 'Tabbox', function()
+                for _, T in next, Tabbox.Tabs do
+                    if T.Container and T.Container.Visible then T:Resize() end
+                end
+            end)
+
             return Tabbox;
         end;
 
@@ -3776,6 +4107,11 @@ function Library:CreateWindow(...)
 
     local function BuildFadeTargets()
         FadeTargets = {};
+        for inst in next, TransparencyCache do
+            if not inst.Parent and inst ~= Outer then
+                TransparencyCache[inst] = nil
+            end
+        end
         for _, Desc in next, Outer:GetDescendants() do
             local props;
             if Desc:IsA('ImageLabel') then
@@ -3815,6 +4151,23 @@ function Library:CreateWindow(...)
         Fading  = true;
         Toggled = not Toggled;
         ModalElement.Modal = Toggled;
+
+        if not Toggled then
+            local ShouldHideDetached = Toggles["Close Tabs with Library"] and Toggles["Close Tabs with Library"].Value
+            if ShouldHideDetached then
+                for _, DetachInfo in next, Library.DetachedBoxes do
+                    if DetachInfo.Window then
+                        DetachInfo.Window.Visible = false
+                    end
+                end
+            end
+        else
+            for _, DetachInfo in next, Library.DetachedBoxes do
+                if DetachInfo.Window then
+                    DetachInfo.Window.Visible = true
+                end
+            end
+        end
 
         if FadeTargetsDirty or not FadeTargets then
             BuildFadeTargets();
@@ -3912,8 +4265,8 @@ local function OnPlayerChange()
     end;
 end;
 
-Players.PlayerAdded:Connect(OnPlayerChange);
-Players.PlayerRemoving:Connect(OnPlayerChange);
+Library:GiveSignal(Players.PlayerAdded:Connect(OnPlayerChange));
+Library:GiveSignal(Players.PlayerRemoving:Connect(OnPlayerChange));
 
 getgenv().Library = Library
 return Library
