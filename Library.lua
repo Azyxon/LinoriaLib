@@ -2535,6 +2535,14 @@ do
         function Dropdown:SetValues(NewValues)
             if NewValues then Dropdown.Values = NewValues; end;
             Dropdown:BuildDropdownList();
+
+            if ListOuter.Visible then
+                local topZ = 300
+                ListOuter.ZIndex = topZ
+                for _, c in next, ListOuter:GetDescendants() do
+                    pcall(function() c.ZIndex = topZ + 1 end)
+                end
+            end
         end;
 
         function Dropdown:OpenDropdown()
