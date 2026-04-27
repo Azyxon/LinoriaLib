@@ -68,6 +68,14 @@ table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
     end
 end))
 
+table.insert(Library.Signals, InputService.TextBoxFocused:Connect(function()
+    Library.Typing = true
+end))
+
+table.insert(Library.Signals, InputService.TextBoxFocusReleased:Connect(function()
+    Library.Typing = false
+end))
+
 local function GetPlayersString()
     local PlayerList = Players:GetPlayers();
 
@@ -1400,6 +1408,8 @@ do
             if KeyPicker.Mode == 'Always' then
                 return true;
             elseif KeyPicker.Mode == 'Hold' then
+                if (Library.Typing) then return; end
+
                 if KeyPicker.Value == 'None' then return false; end
                 local Key = KeyPicker.Value;
                 if Key == 'MB1' or Key == 'MB2' then
@@ -1496,7 +1506,7 @@ do
         end);
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
-            if (not Picking) then
+            if (not Picking and not Library.Typing) then
                 if KeyPicker.Mode == 'Toggle' or KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -1525,7 +1535,7 @@ do
         end))
 
         Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
-            if (not Picking) then
+            if (not Picking and not Library.Typing) then
                 if KeyPicker.Mode == 'Press' then
                     local Key = KeyPicker.Value;
                     if Key == 'MB1' or Key == 'MB2' then
@@ -2941,11 +2951,13 @@ do
     Library:MakeDraggable(KeybindOuter);
 end;
 
-
-
 function Library:SetWatermarkVisibility(Bool)
     Library.Watermark.Visible = Bool;
 end;
+
+function Library:SetKeybindFrameVisibility(Bool)
+    Library.KeybindFrame.Visible = Bool;
+end
 
 function Library:SetWatermark(Text)
     local X, Y = Library:GetTextBounds(Text, Library.Font, 14);
