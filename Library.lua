@@ -2960,7 +2960,7 @@ function Library:SetKeybindFrameVisibility(Bool)
 end
 
 function Library:SetSpectatorsFrameVisibility(Bool)
-    Library.SpectatorsFrame = Bool;
+    Library.SpectatorsFrame.Visible = Bool;
 end
 
 function Library:SetWatermark(Text)
