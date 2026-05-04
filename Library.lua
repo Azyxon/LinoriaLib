@@ -2722,7 +2722,7 @@ do
 
         local STRIP_H  = 36
         local ICON_SQ  = 28
-        local ICON_GAP = 3
+        local ICON_GAP = 11
         local ICON_LEFT = 3
 
         local StripOuter = Library:Create('Frame', {
@@ -2764,13 +2764,14 @@ do
             local yPos   = math.floor((STRIP_H - ICON_SQ) / 2)
 
             local BtnOuter = Library:Create('Frame', {
-                BackgroundColor3 = Library.MainColor;
-                BorderColor3     = Library.OutlineColor;
-                BorderMode       = Enum.BorderMode.Inset;
-                Position         = UDim2.new(0, xPos, 0, yPos);
-                Size             = UDim2.new(0, ICON_SQ, 0, ICON_SQ);
-                ZIndex           = 8;
-                Parent           = StripInner;
+                BackgroundTransparency = 1;
+                BackgroundColor3       = Library.MainColor;
+                BorderColor3           = Library.OutlineColor;
+                BorderMode             = Enum.BorderMode.Inset;
+                Position               = UDim2.new(0, xPos, 0, yPos);
+                Size                   = UDim2.new(0, ICON_SQ, 0, ICON_SQ);
+                ZIndex                 = 8;
+                Parent                 = StripInner;
             })
             Library:AddToRegistry(BtnOuter, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; })
 
