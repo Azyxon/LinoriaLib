@@ -2722,8 +2722,8 @@ do
 
         local STRIP_H  = 36
         local ICON_SQ  = 28
-        local ICON_GAP = 11
-        local ICON_LEFT = 3
+        local ICON_GAP = 5
+        local ICON_LEFT = 1.5
 
         local StripOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
