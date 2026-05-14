@@ -2200,10 +2200,14 @@ do
 
         function Slider:Display()
             local Suffix = Info.Suffix or '';
+            local Custom = Info.Custom or nil;
+
             if Info.Compact then
                 DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
             elseif Info.HideMax then
                 DisplayLabel.Text = string.format('%s', Slider.Value .. Suffix)
+            elseif Custom and Custom[Slider.Value] then
+                DisplayLabel.Text = Custom[Slider.Value];
             else
                 DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
             end
