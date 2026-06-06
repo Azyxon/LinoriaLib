@@ -2727,7 +2727,6 @@ do
         local STRIP_H  = 36
         local ICON_SQ  = 28
         local ICON_GAP = 5
-        local ICON_LEFT = 1.5
 
         local StripOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
@@ -2749,6 +2748,22 @@ do
         })
         Library:AddToRegistry(StripInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; })
 
+		local IconHolder = Library:Create('Frame', {
+			BackgroundTransparency = 1;
+			Size                   = UDim2.new(1, 0, 1, 0);
+			ZIndex                 = 7;
+			Parent                 = StripInner;
+		})
+
+		Library:Create('UIListLayout', {
+			FillDirection       = Enum.FillDirection.Horizontal;
+			HorizontalAlignment = Enum.HorizontalAlignment.Center;
+			VerticalAlignment   = Enum.VerticalAlignment.Center;
+			Padding             = UDim.new(0, ICON_GAP);
+			SortOrder           = Enum.SortOrder.LayoutOrder;
+			Parent              = IconHolder;
+		})
+
         local Line = Library:Create('Frame', {
             BackgroundColor3 = Library.AccentColor;
             BorderSizePixel  = 0;
@@ -2763,20 +2778,18 @@ do
         function ITabbox:AddTab(IconAsset, Tooltip, IconSize)
             local iconSize = IconSize or ICON_SQ
             
-            local tabIdx = #ITabbox._tabList + 1
-            local xPos   = ICON_LEFT + (tabIdx - 1) * (ICON_SQ + ICON_GAP)
-            local yPos   = math.floor((STRIP_H - ICON_SQ) / 2)
+			local tabIdx = #ITabbox._tabList + 1
 
-            local BtnOuter = Library:Create('Frame', {
-                BackgroundTransparency = 1;
-                BackgroundColor3       = Library.MainColor;
-                BorderColor3           = Library.OutlineColor;
-                BorderMode             = Enum.BorderMode.Inset;
-                Position               = UDim2.new(0, xPos, 0, yPos);
-                Size                   = UDim2.new(0, ICON_SQ, 0, ICON_SQ);
-                ZIndex                 = 8;
-                Parent                 = StripInner;
-            })
+			local BtnOuter = Library:Create('Frame', {
+				BackgroundTransparency = 1;
+				BackgroundColor3       = Library.MainColor;
+				BorderColor3           = Library.OutlineColor;
+				BorderMode             = Enum.BorderMode.Inset;
+				Size                   = UDim2.new(0, ICON_SQ, 0, ICON_SQ);
+				LayoutOrder            = tabIdx;
+				ZIndex                 = 8;
+				Parent                 = IconHolder;
+			})
             Library:AddToRegistry(BtnOuter, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; })
 
             local BtnIcon = Library:Create('ImageLabel', {
