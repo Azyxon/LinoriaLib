@@ -2720,13 +2720,13 @@ do
         return Depbox;
     end;
 
-    function Funcs:AddIconTabbox()
+    function Funcs:AddIconTabbox(IconGap)
         local ParentGroupbox  = self
         local ParentContainer = self.Container
 
         local STRIP_H  = 36
         local ICON_SQ  = 28
-        local ICON_GAP = 5
+        local ICON_GAP = IconGap or 5
 
         local StripOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
