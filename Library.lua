@@ -1828,7 +1828,7 @@ do
         local Textbox = {
             Value = Info.Default or '';
             Numeric = Info.Numeric or false;
-            Finished = Info.Finished or false;
+            Finished = if Info.Finished == false then false else true;
             Type = 'Input';
             Callback = Info.Callback or function(Value) end;
         };
@@ -1981,10 +1981,10 @@ do
 
         local Toggle = {
             Value = Info.Default or false;
-            Type = 'Toggle';
+            Risky = Info.Risky or false;
             Callback = Info.Callback or function(Value) end;
+            Type = 'Toggle';
             Addons = {},
-            Risky = Info.Risky,
         };
 
         local Groupbox = self;
