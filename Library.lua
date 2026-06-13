@@ -1987,6 +1987,12 @@ do
             Addons = {},
         };
 
+        if Info.Hide then
+            Toggles[Idx] = Toggle
+
+            return Toggle;
+        end
+
         local Groupbox = self;
         local Container = Groupbox.Container;
 
