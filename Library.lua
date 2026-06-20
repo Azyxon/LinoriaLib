@@ -1990,7 +1990,11 @@ do
         if Info.Hide then
             Toggles[Idx] = Toggle
 
-            return Toggle;
+            return setmetatable(Toggle, {
+                __index = function()
+                   return function () end 
+                end
+            });
         end
 
         local Groupbox = self;
