@@ -2133,7 +2133,7 @@ do
         local Groupbox = self;
         local Container = Groupbox.Container;
 
-        if Text and not Info.Compact then
+        if not Info.Compact then
             Library:CreateLabel({
                 Size = UDim2.new(1, 0, 0, 10);
                 TextSize = 14;
