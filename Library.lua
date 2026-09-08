@@ -2730,13 +2730,13 @@ do
         return Depbox;
     end;
 
-    function Funcs:AddIconTabbox(IconGap)
+    function Funcs:AddIconTabbox(IconSpacing)
         local ParentGroupbox  = self
         local ParentContainer = self.Container
 
         local STRIP_H  = 36
         local ICON_SQ  = 28
-        local ICON_GAP = IconGap or 5
+        local ICON_SPACING = IconSpacing or 15
 
         local StripOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
@@ -2769,7 +2769,7 @@ do
 			FillDirection       = Enum.FillDirection.Horizontal;
 			HorizontalAlignment = Enum.HorizontalAlignment.Center;
 			VerticalAlignment   = Enum.VerticalAlignment.Center;
-			Padding             = UDim.new(0, ICON_GAP);
+			Padding             = UDim.new(0, ICON_SPACING);
 			SortOrder           = Enum.SortOrder.LayoutOrder;
 			Parent              = IconHolder;
 		})
